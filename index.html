@@ -1,0 +1,2499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assassin Creed AI Lab — Precision Intelligence, Engineered</title>
+<style>
+  :root {
+    --white: #FAFAF7;
+    --white-pure: #FFFFFF;
+    --cream: #F2F0EB;
+    --gray-50: #F7F7F5;
+    --gray-100: #EDEDEA;
+    --gray-200: #DDDDD8;
+    --gray-300: #C4C4BC;
+    --gray-400: #A0A098;
+    --gray-500: #787870;
+    --gray-600: #585850;
+    --gray-700: #3A3A34;
+    --gray-800: #222220;
+    --black: #0A0A08;
+    --black-rich: #050504;
+    --crimson: #9B1B1B;
+    --crimson-light: #C43030;
+    --crimson-pale: rgba(155,27,27,0.08);
+    --gold-muted: #8B7540;
+    --font-display: Georgia, Cambria, 'Times New Roman', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'Consolas', 'Courier New', Courier, monospace;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--white);
+    color: var(--gray-800);
+    font-family: var(--font-body);
+    font-weight: 400;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* LOADER */
+  #loader {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: var(--white-pure);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+  }
+
+  #loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  .loader-emblem {
+    width: 70px;
+    height: 70px;
+    animation: loader-pulse 1.5s ease-in-out infinite;
+  }
+
+  .loader-emblem svg { width: 100%; height: 100%; fill: var(--black); }
+
+  .loader-text {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    color: var(--gray-500);
+    margin-top: 28px;
+    text-transform: uppercase;
+  }
+
+  .loader-bar-track {
+    width: 180px;
+    height: 1px;
+    background: var(--gray-200);
+    margin-top: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .loader-bar-fill {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%;
+    width: 0%;
+    background: var(--black);
+    transition: width 0.3s ease;
+  }
+
+  @keyframes loader-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.04); opacity: 0.6; }
+  }
+
+  /* CURSOR */
+  .cursor-dot {
+    position: fixed;
+    width: 6px;
+    height: 6px;
+    background: var(--black);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s ease;
+  }
+
+  .cursor-ring {
+    position: fixed;
+    width: 34px;
+    height: 34px;
+    border: 1.5px solid rgba(10,10,8,0.35);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.25s ease, width 0.3s, height 0.3s, border-color 0.3s;
+  }
+
+  .cursor-ring.hovering {
+    width: 54px;
+    height: 54px;
+    border-color: var(--black);
+    background: rgba(10,10,8,0.04);
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    background: rgba(250,250,247,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--gray-100);
+    padding: 0 60px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.4s ease;
+  }
+
+  nav.scrolled {
+    background: rgba(255,255,255,0.97);
+    border-bottom-color: var(--gray-200);
+    box-shadow: 0 1px 20px rgba(0,0,0,0.04);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+  }
+
+  .nav-emblem { width: 36px; height: 36px; }
+  .nav-emblem svg { width: 100%; height: 100%; fill: var(--black); }
+
+  .nav-brand {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--black);
+    line-height: 1.2;
+  }
+
+  .nav-brand span {
+    display: block;
+    font-size: 9px;
+    font-weight: 400;
+    color: var(--gray-500);
+    letter-spacing: 0.22em;
+    font-family: var(--font-mono);
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 34px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: var(--gray-600);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.3s;
+    position: relative;
+    padding: 4px 0;
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 0; right: 0;
+    height: 1.5px;
+    background: var(--black);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+
+  .nav-links a:hover { color: var(--black); }
+  .nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
+
+  .nav-cta {
+    background: var(--black) !important;
+    color: var(--white) !important;
+    padding: 9px 24px !important;
+    font-size: 10px !important;
+    letter-spacing: 0.2em !important;
+    transition: all 0.3s !important;
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+  }
+
+  .nav-cta:hover {
+    background: var(--gray-800) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+
+  .nav-cta::after { display: none !important; }
+
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: none;
+    padding: 8px;
+    z-index: 1001;
+  }
+
+  .nav-toggle span {
+    display: block;
+    width: 22px;
+    height: 1.5px;
+    background: var(--black);
+    transition: all 0.3s;
+  }
+
+  .nav-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(4.5px,4.5px); }
+  .nav-toggle.active span:nth-child(2) { opacity: 0; }
+  .nav-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(4.5px,-4.5px); }
+
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.98);
+    z-index: 999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s;
+  }
+
+  .mobile-menu.active { opacity: 1; visibility: visible; }
+
+  .mobile-menu a {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray-700);
+    text-decoration: none;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+
+  .mobile-menu a:hover { color: var(--black); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding-top: 70px;
+    background: var(--white);
+  }
+
+  #hero-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 35%, rgba(155,27,27,0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 80% 70%, rgba(10,10,8,0.02) 0%, transparent 60%);
+    z-index: 1;
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(10,10,8,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(10,10,8,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 0%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 0%, transparent 100%);
+    z-index: 1;
+  }
+
+  .hero-corner {
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    border-color: var(--gray-300);
+    border-style: solid;
+    z-index: 2;
+  }
+
+  .hero-corner.tl { top: 85px; left: 40px; border-width: 1.5px 0 0 1.5px; }
+  .hero-corner.tr { top: 85px; right: 40px; border-width: 1.5px 1.5px 0 0; }
+  .hero-corner.bl { bottom: 40px; left: 40px; border-width: 0 0 1.5px 1.5px; }
+  .hero-corner.br { bottom: 40px; right: 40px; border-width: 0 1.5px 1.5px 0; }
+
+  .hero-content {
+    text-align: center;
+    position: relative;
+    z-index: 3;
+    padding: 60px 20px;
+    max-width: 900px;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    margin-bottom: 30px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.3s ease forwards;
+  }
+
+  .hero-emblem {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 36px;
+    position: relative;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.5s ease forwards;
+  }
+
+  .hero-emblem::before {
+    content: '';
+    position: absolute;
+    inset: -20px;
+    border-radius: 50%;
+    border: 1px solid var(--gray-200);
+    animation: emblem-ring 4s ease-in-out infinite;
+  }
+
+  @keyframes emblem-ring {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.4; }
+  }
+
+  .hero-emblem svg {
+    width: 100%;
+    height: 100%;
+    fill: var(--black);
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 6vw, 76px);
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--black);
+    letter-spacing: 0.03em;
+    margin-bottom: 14px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.7s ease forwards;
+  }
+
+  .hero-title .accent {
+    color: var(--crimson);
+  }
+
+  .hero-subtitle-line {
+    font-family: var(--font-display);
+    font-size: clamp(12px, 1.8vw, 18px);
+    font-weight: 400;
+    color: var(--gray-500);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.9s ease forwards;
+  }
+
+  .hero-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.8s 1s ease forwards;
+  }
+
+  .hero-divider span { width: 50px; height: 1px; }
+  .hero-divider span:first-child { background: linear-gradient(90deg, transparent, var(--gray-400)); }
+  .hero-divider span:last-child { background: linear-gradient(90deg, var(--gray-400), transparent); }
+  .hero-divider i { font-size: 8px; color: var(--crimson); font-style: normal; }
+
+  .hero-desc {
+    font-size: clamp(14px, 1.8vw, 18px);
+    font-weight: 400;
+    color: var(--gray-600);
+    line-height: 1.8;
+    max-width: 660px;
+    margin: 0 auto 48px;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.1s ease forwards;
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.3s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .btn-primary {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 15px 40px;
+    background: var(--black);
+    color: var(--white);
+    border: none;
+    cursor: none;
+    position: relative;
+    transition: all 0.35s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    display: inline-block;
+  }
+
+  .btn-primary:hover {
+    background: var(--gray-800);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+  }
+
+  .btn-secondary {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 14px 40px;
+    background: transparent;
+    color: var(--black);
+    border: 1.5px solid var(--gray-300);
+    cursor: none;
+    transition: all 0.35s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    display: inline-block;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--black);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  }
+
+  .scroll-indicator {
+    position: absolute;
+    bottom: 34px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.6s ease forwards;
+  }
+
+  .scroll-indicator span {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.3em;
+    color: var(--gray-400);
+    text-transform: uppercase;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 36px;
+    position: relative;
+    overflow: hidden;
+    background: var(--gray-200);
+  }
+
+  .scroll-line::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    background: var(--black);
+    animation: scroll-down 2s ease-in-out infinite;
+  }
+
+  @keyframes scroll-down {
+    0% { top: -60%; }
+    100% { top: 160%; }
+  }
+
+  /* STAT BAR */
+  .stat-bar {
+    background: var(--black);
+    padding: 30px 60px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    position: relative;
+    z-index: 3;
+  }
+
+  .stat-item {
+    text-align: center;
+    padding: 12px 20px;
+    position: relative;
+  }
+
+  .stat-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 18%;
+    bottom: 18%;
+    width: 1px;
+    background: rgba(255,255,255,0.1);
+  }
+
+  .stat-number {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--white);
+    display: block;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-number .accent-stat { color: var(--crimson-light); }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase;
+  }
+
+  /* SECTIONS */
+  section {
+    padding: 110px 60px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .section-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    color: var(--crimson);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .section-eyebrow::before {
+    content: '';
+    width: 28px;
+    height: 1.5px;
+    background: var(--crimson);
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(24px, 4vw, 46px);
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 20px;
+    line-height: 1.1;
+  }
+
+  .section-title .blk { color: var(--crimson); }
+
+  .section-desc {
+    font-size: 16px;
+    color: var(--gray-500);
+    line-height: 1.8;
+    max-width: 660px;
+    margin-bottom: 56px;
+  }
+
+  /* ABOUT */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 70px;
+    align-items: center;
+  }
+
+  .about-visual { position: relative; }
+
+  .about-main-card {
+    background: var(--white-pure);
+    border: 1px solid var(--gray-200);
+    padding: 46px 38px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.03);
+  }
+
+  .about-main-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--black), var(--crimson), var(--black));
+  }
+
+  .about-main-card::after {
+    content: 'AC';
+    position: absolute;
+    bottom: 12px; right: 18px;
+    font-family: var(--font-display);
+    font-size: 85px;
+    font-weight: 700;
+    color: rgba(10,10,8,0.03);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .about-main-card:hover { box-shadow: 0 8px 40px rgba(0,0,0,0.06); }
+
+  .about-mini-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .about-mini-card {
+    background: var(--white-pure);
+    border: 1px solid var(--gray-100);
+    padding: 22px 18px;
+    transition: all 0.4s;
+    cursor: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .about-mini-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 2px;
+    background: var(--crimson);
+    transition: width 0.5s;
+  }
+
+  .about-mini-card:hover { border-color: var(--gray-300); transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.04); }
+  .about-mini-card:hover::after { width: 100%; }
+
+  .mini-icon { font-size: 22px; margin-bottom: 10px; display: block; }
+
+  .mini-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--black);
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .mini-text { font-size: 12px; color: var(--gray-500); line-height: 1.6; }
+
+  .about-text p { font-size: 15px; color: var(--gray-600); line-height: 1.85; margin-bottom: 20px; }
+  .about-text strong { color: var(--black); font-weight: 600; }
+
+  .about-highlight {
+    background: var(--crimson-pale);
+    border-left: 3px solid var(--crimson);
+    padding: 22px 26px;
+    margin: 28px 0;
+    position: relative;
+  }
+
+  .about-highlight::before {
+    content: '\201C';
+    position: absolute;
+    top: -8px;
+    left: 10px;
+    font-size: 50px;
+    color: rgba(155,27,27,0.1);
+    font-family: var(--font-display);
+    line-height: 1;
+  }
+
+  .about-highlight p {
+    font-size: 14px !important;
+    color: var(--crimson) !important;
+    font-style: italic;
+    margin: 0 !important;
+    line-height: 1.75 !important;
+  }
+
+  /* SERVICES */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 36px;
+  }
+
+  .service-card {
+    background: var(--white-pure);
+    border: 1px solid var(--gray-100);
+    padding: 36px 28px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.45s cubic-bezier(0.25,0.46,0.45,0.94);
+    cursor: none;
+  }
+
+  .service-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 0; height: 2px;
+    background: var(--black);
+    transition: width 0.6s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+
+  .service-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(155,27,27,0.02) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .service-card:hover {
+    border-color: var(--gray-300);
+    transform: translateY(-5px);
+    box-shadow: 0 16px 50px rgba(0,0,0,0.06);
+  }
+
+  .service-card:hover::before { width: 100%; }
+  .service-card:hover::after { opacity: 1; }
+
+  .service-number {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--gray-400);
+    letter-spacing: 0.2em;
+    margin-bottom: 20px;
+  }
+
+  .service-icon-wrap {
+    width: 50px;
+    height: 50px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+    font-size: 24px;
+    transition: all 0.4s;
+  }
+
+  .service-card:hover .service-icon-wrap {
+    background: var(--black);
+    border-color: var(--black);
+    transform: scale(1.05);
+  }
+
+  .service-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 12px;
+    line-height: 1.25;
+  }
+
+  .service-desc {
+    font-size: 13px;
+    color: var(--gray-500);
+    line-height: 1.75;
+    margin-bottom: 22px;
+  }
+
+  .service-features {
+    list-style: none;
+    border-top: 1px solid var(--gray-100);
+    padding-top: 18px;
+  }
+
+  .service-features li {
+    font-size: 11px;
+    color: var(--gray-500);
+    padding: 4px 0 4px 16px;
+    position: relative;
+    font-family: var(--font-mono);
+    letter-spacing: 0.03em;
+    transition: color 0.3s;
+  }
+
+  .service-features li::before {
+    content: '\25B8';
+    position: absolute;
+    left: 0;
+    color: var(--crimson);
+    font-size: 10px;
+    top: 5px;
+  }
+
+  .service-card:hover .service-features li { color: var(--gray-700); }
+
+  .services-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .service-wide {
+    background: var(--white-pure);
+    border: 1px solid var(--gray-100);
+    padding: 36px;
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    transition: all 0.4s;
+    cursor: none;
+  }
+
+  .service-wide:hover { border-color: var(--gray-300); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+
+  .service-wide-icon { font-size: 36px; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+  .service-wide-content .service-title { font-size: 14px; margin-bottom: 8px; }
+  .service-wide-content .service-desc { font-size: 12px; margin-bottom: 0; }
+
+  /* METHODOLOGY */
+  .method-section {
+    background: var(--black);
+    padding: 110px 0;
+    width: 100%;
+    max-width: none;
+  }
+
+  .method-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 60px;
+  }
+
+  .method-inner .section-eyebrow { color: rgba(255,255,255,0.4); }
+  .method-inner .section-eyebrow::before { background: var(--crimson); }
+  .method-inner .section-title { color: var(--white); }
+  .method-inner .section-title .blk { color: var(--crimson-light); }
+  .method-inner .section-desc { color: rgba(255,255,255,0.45); }
+
+  .method-steps {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    margin-top: 56px;
+    position: relative;
+  }
+
+  .method-steps::before {
+    content: '';
+    position: absolute;
+    top: 38px;
+    left: 10%;
+    width: 80%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), rgba(255,255,255,0.25), rgba(255,255,255,0.15), transparent);
+  }
+
+  .method-step {
+    text-align: center;
+    padding: 0 14px;
+    position: relative;
+  }
+
+  .method-step-num {
+    width: 72px;
+    height: 72px;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 22px;
+    background: var(--black);
+    position: relative;
+    z-index: 2;
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--white);
+    transition: all 0.4s;
+    cursor: none;
+  }
+
+  .method-step-num::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.4s;
+  }
+
+  .method-step:hover .method-step-num {
+    background: var(--white);
+    color: var(--black);
+    border-color: var(--white);
+    box-shadow: 0 0 30px rgba(255,255,255,0.1);
+  }
+
+  .method-step:hover .method-step-num::after { border-color: rgba(255,255,255,0.15); inset: -12px; }
+
+  .method-step-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 0.12em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .method-step-desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    line-height: 1.65;
+  }
+
+  /* TECH */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin-top: 48px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-100);
+  }
+
+  .tech-cell {
+    background: var(--white-pure);
+    padding: 30px 20px;
+    text-align: center;
+    transition: all 0.4s;
+    cursor: none;
+    position: relative;
+  }
+
+  .tech-cell:hover {
+    background: var(--black);
+    transform: translateY(-2px);
+  }
+
+  .tech-cell:hover .tech-name { color: var(--white); }
+  .tech-cell:hover .tech-desc { color: rgba(255,255,255,0.5); }
+  .tech-cell:hover .tech-icon { filter: brightness(2); }
+
+  .tech-icon { font-size: 32px; margin-bottom: 12px; display: block; transition: filter 0.3s; }
+
+  .tech-name {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--black);
+    letter-spacing: 0.1em;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+
+  .tech-desc {
+    font-size: 10px;
+    color: var(--gray-400);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+    transition: color 0.3s;
+  }
+
+  /* CASES */
+  .cases-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .case-card {
+    background: var(--white-pure);
+    border: 1px solid var(--gray-100);
+    padding: 36px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 22px;
+    align-items: start;
+    transition: all 0.4s;
+    cursor: none;
+  }
+
+  .case-card:hover { border-color: var(--gray-300); transform: translateY(-3px); box-shadow: 0 12px 35px rgba(0,0,0,0.04); }
+
+  .case-icon {
+    width: 56px;
+    height: 56px;
+    background: var(--crimson-pale);
+    border: 1px solid rgba(155,27,27,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+
+  .case-card:hover .case-icon {
+    background: var(--crimson);
+    border-color: var(--crimson);
+  }
+
+  .case-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 8px;
+  }
+
+  .case-desc { font-size: 13px; color: var(--gray-500); line-height: 1.7; margin-bottom: 14px; }
+
+  .case-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    color: var(--gray-500);
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    padding: 3px 9px;
+    transition: all 0.3s;
+  }
+
+  .case-card:hover .tag { border-color: var(--gray-300); color: var(--gray-700); }
+
+  /* PILLARS */
+  .pillars-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .pillar-card {
+    position: relative;
+    padding: 40px 30px;
+    background: var(--white-pure);
+    border: 1px solid var(--gray-100);
+    overflow: hidden;
+    transition: all 0.4s;
+    cursor: none;
+  }
+
+  .pillar-card::after {
+    content: attr(data-n);
+    position: absolute;
+    right: -8px; bottom: -18px;
+    font-family: var(--font-display);
+    font-size: 100px;
+    font-weight: 700;
+    color: rgba(10,10,8,0.025);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .pillar-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 0; height: 2px;
+    background: var(--crimson);
+    transition: width 0.6s;
+  }
+
+  .pillar-card:hover { border-color: var(--gray-300); transform: translateY(-4px); box-shadow: 0 16px 45px rgba(0,0,0,0.05); }
+  .pillar-card:hover::before { width: 100%; }
+
+  .pillar-icon { font-size: 36px; margin-bottom: 20px; display: block; }
+
+  .pillar-title {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 14px;
+  }
+
+  .pillar-desc { font-size: 13px; color: var(--gray-500); line-height: 1.8; }
+
+  /* ETHICS */
+  .ethics-section {
+    background: var(--cream);
+    width: 100%;
+    max-width: none;
+    padding: 110px 0;
+  }
+
+  .ethics-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 60px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 70px;
+    align-items: start;
+  }
+
+  .ethics-commitments { display: flex; flex-direction: column; gap: 18px; }
+
+  .ethics-item {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 16px;
+    align-items: start;
+    padding: 14px;
+    border-radius: 4px;
+    transition: background 0.3s;
+  }
+
+  .ethics-item:hover { background: rgba(155,27,27,0.03); }
+
+  .ethics-check {
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid var(--gray-300);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    color: var(--crimson);
+    transition: all 0.3s;
+  }
+
+  .ethics-item:hover .ethics-check {
+    border-color: var(--crimson);
+    background: var(--crimson-pale);
+  }
+
+  .ethics-item-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--black);
+    letter-spacing: 0.08em;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+
+  .ethics-item-desc { font-size: 12px; color: var(--gray-500); line-height: 1.65; }
+
+  /* CONTACT */
+  .contact-section {
+    background: var(--white);
+    width: 100%;
+    max-width: none;
+    padding: 110px 0;
+  }
+
+  .contact-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 60px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 70px;
+    align-items: start;
+  }
+
+  .contact-info-block { display: flex; flex-direction: column; gap: 24px; }
+
+  .contact-item {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .contact-icon-box {
+    width: 48px;
+    height: 48px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--black);
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+
+  .contact-item:hover .contact-icon-box {
+    background: var(--black);
+    color: var(--white);
+    border-color: var(--black);
+  }
+
+  .contact-item-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--crimson);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .contact-item-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--black);
+    text-decoration: none;
+    transition: color 0.3s;
+    display: block;
+    cursor: none;
+  }
+
+  .contact-item-value:hover { color: var(--crimson); }
+  .contact-item-sub { font-size: 11px; color: var(--gray-400); margin-top: 3px; }
+
+  .contact-form-area {
+    background: var(--white-pure);
+    border: 1px solid var(--gray-200);
+    padding: 46px 36px;
+    position: relative;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.03);
+  }
+
+  .contact-form-area::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--black);
+  }
+
+  .form-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 6px;
+  }
+
+  .form-subtitle {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-bottom: 32px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+  }
+
+  .form-row { margin-bottom: 18px; }
+
+  .form-row label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+
+  .form-row input,
+  .form-row select,
+  .form-row textarea {
+    width: 100%;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    color: var(--black);
+    font-family: var(--font-body);
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    transition: all 0.3s;
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+
+  .form-row input:focus,
+  .form-row select:focus,
+  .form-row textarea:focus {
+    border-color: var(--black);
+    background: var(--white-pure);
+    box-shadow: 0 0 0 2px rgba(10,10,8,0.05);
+  }
+
+  .form-row input::placeholder,
+  .form-row textarea::placeholder { color: var(--gray-400); }
+
+  .form-row select option { background: var(--white); color: var(--black); }
+
+  .form-row textarea { min-height: 110px; resize: vertical; }
+
+  .form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .form-note {
+    font-size: 10px;
+    color: var(--gray-400);
+    font-family: var(--font-mono);
+    margin-bottom: 22px;
+  }
+
+  .form-submit {
+    width: 100%;
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 15px;
+    border: none;
+    cursor: none;
+    transition: all 0.35s;
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+  }
+
+  .form-submit:hover {
+    background: var(--crimson);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(155,27,27,0.2);
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 36px;
+    right: 36px;
+    background: var(--black);
+    border: none;
+    padding: 18px 24px;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transform: translateY(130%);
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    max-width: 400px;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  .toast-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(155,27,27,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--crimson-light);
+    flex-shrink: 0;
+  }
+
+  .toast-text {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.5;
+  }
+
+  .toast-text strong { color: var(--white); display: block; margin-bottom: 2px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+
+  /* MANIFESTO */
+  .manifesto {
+    text-align: center;
+    padding: 90px 60px;
+    max-width: 860px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .manifesto::before, .manifesto::after {
+    content: '\201C';
+    font-family: var(--font-display);
+    font-size: 120px;
+    color: rgba(10,10,8,0.04);
+    position: absolute;
+    line-height: 1;
+  }
+
+  .manifesto::before { top: 20px; left: 20px; }
+  .manifesto::after { content: '\201D'; bottom: 0; right: 20px; }
+
+  .manifesto-text {
+    font-family: var(--font-display);
+    font-size: clamp(15px, 2.6vw, 26px);
+    font-weight: 400;
+    color: var(--gray-700);
+    line-height: 1.65;
+    font-style: italic;
+    position: relative;
+    z-index: 1;
+  }
+
+  .manifesto-attr {
+    margin-top: 24px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--crimson);
+    text-transform: uppercase;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--black);
+    padding: 64px 60px;
+  }
+
+  .footer-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 50px;
+    padding-bottom: 44px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .footer-brand p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+    line-height: 1.75;
+    margin-top: 16px;
+    max-width: 280px;
+  }
+
+  .footer-col-title {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 0.18em;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .footer-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .footer-links a {
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    text-decoration: none;
+    transition: color 0.3s;
+    cursor: none;
+  }
+
+  .footer-links a:hover { color: var(--white); }
+
+  .footer-bottom {
+    max-width: 1400px;
+    margin: 26px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-copy {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.1em;
+  }
+
+  .footer-creed {
+    font-family: var(--font-display);
+    font-size: 11px;
+    color: rgba(255,255,255,0.15);
+    letter-spacing: 0.1em;
+    font-style: italic;
+  }
+
+  /* SEPARATOR */
+  .separator {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 0 60px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .separator::before, .separator::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gray-200), transparent);
+  }
+
+  .separator-icon { font-size: 10px; color: var(--gray-300); }
+
+  /* REVEALS */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.9s cubic-bezier(0.25,0.46,0.45,0.94), transform 0.9s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  .reveal-left {
+    opacity: 0;
+    transform: translateX(-35px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+
+  .reveal-left.visible { opacity: 1; transform: translateX(0); }
+
+  .reveal-right {
+    opacity: 0;
+    transform: translateX(35px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+
+  .reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+  /* RESPONSIVE */
+  @media (max-width: 1100px) {
+    nav { padding: 0 30px; }
+    .nav-links { gap: 20px; }
+    section { padding: 80px 30px; }
+    .stat-bar { padding: 24px 30px; }
+    .about-grid { grid-template-columns: 1fr; gap: 50px; }
+    .services-grid { grid-template-columns: 1fr 1fr; }
+    .services-grid-2 { grid-template-columns: 1fr; }
+    .method-steps { grid-template-columns: repeat(3, 1fr); }
+    .method-steps::before { display: none; }
+    .ethics-inner, .contact-inner { grid-template-columns: 1fr; gap: 50px; padding: 0 30px; }
+    .method-inner { padding: 0 30px; }
+    .footer-inner { grid-template-columns: 1fr 1fr; padding: 0 30px 44px; }
+    .footer-bottom { padding: 0 30px; }
+    .cases-grid { grid-template-columns: 1fr; }
+    .pillars-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .nav-toggle { display: flex; }
+    .mobile-menu { display: flex; }
+    .stat-bar { grid-template-columns: 1fr 1fr; padding: 20px; }
+    .stat-number { font-size: 28px; }
+    .services-grid { grid-template-columns: 1fr; }
+    .tech-grid { grid-template-columns: repeat(2, 1fr); }
+    .method-steps { grid-template-columns: 1fr 1fr; gap: 28px; }
+    .hero-buttons { flex-direction: column; align-items: center; }
+    .footer-inner { grid-template-columns: 1fr; }
+    .form-row-2 { grid-template-columns: 1fr; }
+    .about-mini-cards { grid-template-columns: 1fr; }
+    .hero-corner { display: none; }
+    .cursor-dot, .cursor-ring { display: none; }
+    body { cursor: auto; }
+    section { padding: 60px 20px; }
+    .contact-form-area { padding: 28px 20px; }
+    .toast { left: 16px; right: 16px; bottom: 16px; max-width: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-emblem">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="50,5 90,30 90,70 50,95 10,70 10,30" fill="none" stroke="currentColor" stroke-width="3"/>
+      <polygon points="50,38 56,50 50,62 44,50" fill="currentColor"/>
+    </svg>
+  </div>
+  <div class="loader-text">Initializing Systems</div>
+  <div class="loader-bar-track">
+    <div class="loader-bar-fill" id="loader-bar"></div>
+  </div>
+</div>
+
+<!-- CURSOR -->
+<div class="cursor-dot" id="cursor-dot"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#home" onclick="closeMobile()">Home</a>
+  <a href="#about" onclick="closeMobile()">About</a>
+  <a href="#services" onclick="closeMobile()">Services</a>
+  <a href="#methodology" onclick="closeMobile()">Methodology</a>
+  <a href="#technology" onclick="closeMobile()">Technology</a>
+  <a href="#ethics" onclick="closeMobile()">Ethics</a>
+  <a href="#contact" onclick="closeMobile()">Contact</a>
+</div>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <a class="nav-logo" href="#home">
+    <div class="nav-emblem">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="50,5 90,30 90,70 50,95 10,70 10,30" fill="none" stroke="currentColor" stroke-width="4"/>
+        <polygon points="50,18 78,33 78,65 50,80 22,65 22,33" fill="none" stroke="currentColor" stroke-width="2" opacity="0.35"/>
+        <path d="M50 15 L50 85 M25 32 L75 68 M75 32 L25 68" stroke="currentColor" stroke-width="1" opacity="0.15"/>
+        <circle cx="50" cy="50" r="12" fill="currentColor" opacity="0.06"/>
+        <polygon points="50,38 56,50 50,62 44,50" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="nav-brand">
+      ASSASSIN CREED
+      <span>artificial intelligence laboratory</span>
+    </div>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#methodology">Method</a></li>
+    <li><a href="#technology">Tech</a></li>
+    <li><a href="#ethics">Ethics</a></li>
+    <li><a href="#contact" class="nav-cta">Contact</a></li>
+  </ul>
+
+  <button class="nav-toggle" id="nav-toggle" onclick="toggleMobile()">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-corner tl"></div>
+  <div class="hero-corner tr"></div>
+  <div class="hero-corner bl"></div>
+  <div class="hero-corner br"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">Established · AI Innovation Division · Official Research Laboratory</div>
+
+    <div class="hero-emblem">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="50,5 90,30 90,70 50,95 10,70 10,30" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <polygon points="50,18 78,33 78,65 50,80 22,65 22,33" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.35"/>
+        <path d="M50 15 L50 85 M25 32 L75 68 M75 32 L25 68" stroke="currentColor" stroke-width="0.8" opacity="0.18"/>
+        <circle cx="50" cy="50" r="12" fill="currentColor" opacity="0.06"/>
+        <polygon points="50,38 56,50 50,62 44,50" fill="currentColor"/>
+        <circle cx="50" cy="5" r="2" fill="currentColor"/>
+        <circle cx="90" cy="30" r="2" fill="currentColor"/>
+        <circle cx="90" cy="70" r="2" fill="currentColor"/>
+        <circle cx="50" cy="95" r="2" fill="currentColor"/>
+        <circle cx="10" cy="70" r="2" fill="currentColor"/>
+        <circle cx="10" cy="30" r="2" fill="currentColor"/>
+      </svg>
+    </div>
+
+    <h1 class="hero-title">ASSASSIN CREED<br><span class="accent">AI LABORATORY</span></h1>
+    <div class="hero-subtitle-line">Precision Intelligence · Engineered for the Future</div>
+
+    <div class="hero-divider">
+      <span></span>
+      <i>◆</i>
+      <span></span>
+    </div>
+
+    <p class="hero-desc">
+      A world-class artificial intelligence research and development organization built on precision, transparency, and the relentless pursuit of intelligence that serves humanity. We architect solutions that operate at the frontier of possibility.
+    </p>
+
+    <div class="hero-buttons">
+      <a href="#services" class="btn-primary">Explore Our Services</a>
+      <a href="#contact" class="btn-secondary">Initiate Contact</a>
+    </div>
+  </div>
+
+  <div class="scroll-indicator">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- STAT BAR -->
+<div class="stat-bar">
+  <div class="stat-item">
+    <span class="stat-number" data-count="47">0</span>
+    <span class="stat-label">AI Models Deployed</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number" data-count="12">0</span>
+    <span class="stat-label">Research Domains</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number" data-count="99.7" data-suffix="%" data-decimal="1">0</span>
+    <span class="stat-label">System Uptime</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">∞</span>
+    <span class="stat-label">Commitment to Ethics</span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-visual reveal-left">
+      <div class="about-main-card">
+        <div class="section-eyebrow">Established Organization</div>
+        <div class="section-title" style="font-size:24px; margin-bottom:14px;">The <span class="blk">Hidden Blade</span><br>of Intelligence</div>
+        <p style="font-size:13px; color:var(--gray-500); line-height:1.75;">Like the legendary order that inspired our name, we operate with discipline, purpose, and a code — bringing intelligent solutions to bear with surgical precision where others cannot.</p>
+      </div>
+      <div class="about-mini-cards">
+        <div class="about-mini-card">
+          <span class="mini-icon">🧠</span>
+          <div class="mini-title">Deep Research</div>
+          <div class="mini-text">Frontier AI exploration across neural architectures and cognitive systems.</div>
+        </div>
+        <div class="about-mini-card">
+          <span class="mini-icon">⚔️</span>
+          <div class="mini-title">Battle-Tested</div>
+          <div class="mini-text">Models hardened through rigorous adversarial testing and red-team evaluation.</div>
+        </div>
+        <div class="about-mini-card">
+          <span class="mini-icon">🛡️</span>
+          <div class="mini-title">Secure by Design</div>
+          <div class="mini-text">Every solution architected with safety and privacy as foundational principles.</div>
+        </div>
+        <div class="about-mini-card">
+          <span class="mini-icon">🌐</span>
+          <div class="mini-title">Global Reach</div>
+          <div class="mini-text">Deploying intelligent systems that operate across domains and geographies.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-text reveal-right">
+      <div class="section-eyebrow">Who We Are</div>
+      <h2 class="section-title">An Intelligence Lab<br>Built on <span class="blk">Creed</span></h2>
+      <p><strong>Assassin Creed AI Lab</strong> is an official artificial intelligence research and development organization committed to engineering intelligent systems that are powerful, ethical, and deeply purposeful. We are not a startup chasing trends — we are a structured laboratory guided by a creed.</p>
+      <p>Founded on the conviction that <strong>true intelligence is disciplined intelligence</strong>, we bring together researchers, engineers, and ethicists to develop AI solutions that solve real-world problems with clarity and precision. Our name reflects our philosophy: like an assassin trained in their craft, our AI systems are <strong>specialized, targeted, and effective</strong>.</p>
+      <div class="about-highlight">
+        <p>"Nothing is true, everything is permitted — except mediocrity. We hold our artificial intelligence to standards that most labs dare not attempt."</p>
+      </div>
+      <p>Our laboratory encompasses <strong>twelve active research domains</strong> including natural language processing, computer vision, reinforcement learning, neural architecture design, AI safety, and agentic systems. We operate with full transparency and an unwavering commitment to responsible AI deployment.</p>
+      <a href="#contact" class="btn-primary" style="display:inline-block; margin-top:10px;">Partner With Us</a>
+    </div>
+  </div>
+</section>
+
+<div class="separator"><span class="separator-icon">◆</span></div>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="section-eyebrow">Capabilities</div>
+  <h2 class="section-title">Our <span class="blk">Core Services</span></h2>
+  <p class="section-desc">From custom AI model development to full-stack intelligent system deployment, we offer a comprehensive suite of services designed for organizations that demand excellence.</p>
+
+  <div class="services-grid">
+    <div class="service-card reveal">
+      <div class="service-number">SERVICE — 001</div>
+      <div class="service-icon-wrap">🤖</div>
+      <div class="service-title">Custom AI Model Development</div>
+      <p class="service-desc">End-to-end design, training, and fine-tuning of large language models, vision models, and multimodal architectures tailored to your domain-specific requirements.</p>
+      <ul class="service-features">
+        <li>Domain-specific pre-training and RLHF fine-tuning</li>
+        <li>Architecture selection and hyperparameter optimization</li>
+        <li>Quantization, pruning & edge deployment</li>
+        <li>Benchmark evaluation and performance auditing</li>
+        <li>Continuous model monitoring and retraining pipelines</li>
+      </ul>
+    </div>
+    <div class="service-card reveal">
+      <div class="service-number">SERVICE — 002</div>
+      <div class="service-icon-wrap">💬</div>
+      <div class="service-title">Intelligent Conversational Agents</div>
+      <p class="service-desc">Design and deployment of sophisticated conversational AI agents, enterprise chatbots, and multi-turn dialogue systems that understand context with human-like precision.</p>
+      <ul class="service-features">
+        <li>Multi-turn context management and memory systems</li>
+        <li>RAG (Retrieval-Augmented Generation) integration</li>
+        <li>Tool-use and function-calling agent frameworks</li>
+        <li>Enterprise knowledge base integration</li>
+        <li>Multi-channel deployment (web, API, voice, mobile)</li>
+      </ul>
+    </div>
+    <div class="service-card reveal">
+      <div class="service-number">SERVICE — 003</div>
+      <div class="service-icon-wrap">👁️</div>
+      <div class="service-title">Computer Vision & Perception</div>
+      <p class="service-desc">State-of-the-art visual intelligence systems for object detection, image classification, scene understanding, OCR, and real-time video analytics at scale.</p>
+      <ul class="service-features">
+        <li>Object detection, segmentation, and tracking</li>
+        <li>Document intelligence and OCR pipelines</li>
+        <li>Real-time video analysis and anomaly detection</li>
+        <li>Medical image analysis and pathology detection</li>
+        <li>Satellite and geospatial image processing</li>
+      </ul>
+    </div>
+    <div class="service-card reveal">
+      <div class="service-number">SERVICE — 004</div>
+      <div class="service-icon-wrap">📊</div>
+      <div class="service-title">Predictive Analytics & ML Engineering</div>
+      <p class="service-desc">Advanced machine learning pipelines for prediction, classification, anomaly detection, and decision intelligence built on rigorous statistical foundations.</p>
+      <ul class="service-features">
+        <li>Time-series forecasting and demand modeling</li>
+        <li>Fraud and anomaly detection systems</li>
+        <li>Customer behavior and churn prediction</li>
+        <li>Supply chain and logistics optimization</li>
+        <li>A/B testing frameworks and causal inference</li>
+      </ul>
+    </div>
+    <div class="service-card reveal">
+      <div class="service-number">SERVICE — 005</div>
+      <div class="service-icon-wrap">🔗</div>
+      <div class="service-title">AI Infrastructure & MLOps</div>
+      <p class="service-desc">Robust, scalable infrastructure design for training, serving, monitoring, and governing machine learning systems in production environments at enterprise scale.</p>
+      <ul class="service-features">
+        <li>Cloud-native ML platform architecture</li>
+        <li>Automated training and CI/CD for ML pipelines</li>
+        <li>Model versioning, lineage, and experiment tracking</li>
+        <li>Feature stores and data quality monitoring</li>
+        <li>Model drift detection and automated retraining</li>
+      </ul>
+    </div>
+    <div class="service-card reveal">
+      <div class="service-number">SERVICE — 006</div>
+      <div class="service-icon-wrap">🛡️</div>
+      <div class="service-title">AI Safety & Red Teaming</div>
+      <p class="service-desc">Comprehensive evaluation, stress-testing, and safety auditing of AI systems to identify vulnerabilities, biases, and failure modes before deployment.</p>
+      <ul class="service-features">
+        <li>Adversarial robustness and jailbreak testing</li>
+        <li>Bias auditing and fairness evaluation</li>
+        <li>Interpretability and explainability analysis</li>
+        <li>Regulatory compliance assessment</li>
+        <li>Post-deployment monitoring and incident response</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="services-grid-2" style="margin-top:20px;">
+    <div class="service-wide reveal">
+      <div class="service-wide-icon">🔬</div>
+      <div class="service-wide-content">
+        <div class="service-title">AI Research Consulting & Strategy</div>
+        <p class="service-desc">Strategic guidance for organizations navigating AI adoption — from technology selection and build-vs-buy analysis to enterprise AI roadmaps, ROI modeling, and organizational readiness assessments.</p>
+        <ul class="service-features" style="margin-top:12px;">
+          <li>AI maturity assessments and gap analysis</li>
+          <li>Technology scouting and vendor evaluation</li>
+          <li>AI governance framework design</li>
+        </ul>
+      </div>
+    </div>
+    <div class="service-wide reveal">
+      <div class="service-wide-icon">🎓</div>
+      <div class="service-wide-content">
+        <div class="service-title">AI Education & Capability Building</div>
+        <p class="service-desc">Structured training programs, workshops, and immersive bootcamps designed to upskill technical and non-technical teams in artificial intelligence and machine learning.</p>
+        <ul class="service-features" style="margin-top:12px;">
+          <li>Executive AI literacy programs</li>
+          <li>Hands-on ML engineering workshops</li>
+          <li>Custom curriculum development</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METHODOLOGY -->
+<div class="method-section" id="methodology">
+  <div class="method-inner">
+    <div class="section-eyebrow">Process</div>
+    <h2 class="section-title">The <span class="blk">Creed Methodology</span></h2>
+    <p class="section-desc">Our five-phase engagement model ensures every intelligence system we build is grounded in deep understanding, built with precision, and deployed with confidence.</p>
+
+    <div class="method-steps">
+      <div class="method-step reveal">
+        <div class="method-step-num">I</div>
+        <div class="method-step-title">Reconnaissance</div>
+        <p class="method-step-desc">Deep discovery of your domain, data assets, constraints, and business objectives. We map the terrain before drawing the blade.</p>
+      </div>
+      <div class="method-step reveal">
+        <div class="method-step-num">II</div>
+        <div class="method-step-title">Architecture</div>
+        <p class="method-step-desc">Designing the optimal system blueprint — model selection, data pipelines, infrastructure, and integration strategy with zero ambiguity.</p>
+      </div>
+      <div class="method-step reveal">
+        <div class="method-step-num">III</div>
+        <div class="method-step-title">Forge</div>
+        <p class="method-step-desc">Rapid, iterative development cycles with continuous evaluation. Training, testing, and refinement until the system is battle-ready.</p>
+      </div>
+      <div class="method-step reveal">
+        <div class="method-step-num">IV</div>
+        <div class="method-step-title">Deployment</div>
+        <p class="method-step-desc">Controlled, staged rollout with safety gates, monitoring hooks, and rollback protocols. We go live only when everything is verified.</p>
+      </div>
+      <div class="method-step reveal">
+        <div class="method-step-num">V</div>
+        <div class="method-step-title">Vigilance</div>
+        <p class="method-step-desc">Continuous post-deployment monitoring, performance tracking, drift detection, and iterative improvement. The mission never truly ends.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TECHNOLOGY -->
+<section id="technology">
+  <div class="section-eyebrow">Technology Stack</div>
+  <h2 class="section-title">Frontier <span class="blk">Technology Arsenal</span></h2>
+  <p class="section-desc">We wield the most advanced tools and frameworks in the AI landscape, selected not for popularity but for precision and performance.</p>
+
+  <div class="tech-grid">
+    <div class="tech-cell reveal"><span class="tech-icon">🧬</span><div class="tech-name">Transformer Arch.</div><div class="tech-desc">GPT, BERT, T5, LLaMA</div></div>
+    <div class="tech-cell reveal"><span class="tech-icon">🔥</span><div class="tech-name">PyTorch & JAX</div><div class="tech-desc">Deep learning frameworks</div></div>
+    <div class="tech-cell reveal"><span class="tech-icon">☁️</span><div class="tech-name">Cloud AI Platforms</div><div class="tech-desc">SageMaker, Vertex, Azure</div></div>
+    <div class="tech-cell reveal"><span class="tech-icon">📦</span><div class="tech-name">Vector Databases</div><div class="tech-desc">Pinecone, Weaviate, Chroma</div></div>
+    <div class="tech-cell reveal"><span class="tech-icon">⚡</span><div class="tech-name">LangChain & LlamaIndex</div><div class="tech-desc">Agentic AI orchestration</div></div>
+    <div class="tech-cell reveal"><span class="tech-icon">🎯</span><div class="tech-name">Fine-Tuning & RLHF</div><div class="tech-desc">LoRA, QLoRA, DPO alignment</div></div>
+    <div class="tech-cell reveal"><span class="tech-icon">🔭</span><div class="tech-name">MLflow & W&B</div><div class="tech-desc">Experiment tracking</div></div>
+    <div class="tech-cell reveal"><span class="tech-icon">🛠️</span><div class="tech-name">Kubernetes & Docker</div><div class="tech-desc">Container orchestration</div></div>
+    <div class="tech-cell reveal"><span class="tech-icon">🔐</span><div class="tech-name">Differential Privacy</div><div class="tech-desc">Privacy-preserving ML</div></div>
+    <div class="tech-cell reveal"><span class="tech-icon">📡</span><div class="tech-name">Streaming Inference</div><div class="tech-desc">Real-time model serving</div></div>
+    <div class="tech-cell reveal"><span class="tech-icon">🗃️</span><div class="tech-name">Spark & Kafka</div><div class="tech-desc">Big data pipelines</div></div>
+    <div class="tech-cell reveal"><span class="tech-icon">🧩</span><div class="tech-name">Foundation Model APIs</div><div class="tech-desc">Model integrations</div></div>
+  </div>
+</section>
+
+<div class="separator"><span class="separator-icon">◆</span></div>
+
+<!-- USE CASES -->
+<section id="usecases">
+  <div class="section-eyebrow">Applications</div>
+  <h2 class="section-title">Intelligence Across <span class="blk">Every Domain</span></h2>
+  <p class="section-desc">Our AI systems have been deployed across industries where precision and reliability are non-negotiable.</p>
+
+  <div class="cases-grid">
+    <div class="case-card reveal">
+      <div class="case-icon">🏥</div>
+      <div>
+        <div class="case-title">Healthcare & Life Sciences</div>
+        <p class="case-desc">Clinical decision support, medical imaging analysis, drug discovery acceleration, patient outcome prediction, and electronic health record intelligence systems built to clinical-grade standards.</p>
+        <div class="case-tags"><span class="tag">DIAGNOSTIC AI</span><span class="tag">CLINICAL NLP</span><span class="tag">DRUG DISCOVERY</span><span class="tag">HIPAA</span></div>
+      </div>
+    </div>
+    <div class="case-card reveal">
+      <div class="case-icon">💰</div>
+      <div>
+        <div class="case-title">Financial Services & FinTech</div>
+        <p class="case-desc">Algorithmic trading signal generation, real-time fraud detection, credit risk modeling, regulatory compliance automation, and intelligent document processing for financial institutions.</p>
+        <div class="case-tags"><span class="tag">FRAUD DETECTION</span><span class="tag">RISK MODELING</span><span class="tag">REGTECH</span><span class="tag">ALGO SIGNALS</span></div>
+      </div>
+    </div>
+    <div class="case-card reveal">
+      <div class="case-icon">🏭</div>
+      <div>
+        <div class="case-title">Manufacturing & Industry 4.0</div>
+        <p class="case-desc">Predictive maintenance systems, quality control vision inspection, production optimization, digital twin modeling, and supply chain intelligence for next-generation smart factories.</p>
+        <div class="case-tags"><span class="tag">PREDICTIVE MAINT.</span><span class="tag">VISION INSPECT</span><span class="tag">DIGITAL TWINS</span><span class="tag">IOT</span></div>
+      </div>
+    </div>
+    <div class="case-card reveal">
+      <div class="case-icon">🛒</div>
+      <div>
+        <div class="case-title">Retail & E-Commerce</div>
+        <p class="case-desc">Hyper-personalized recommendation engines, dynamic pricing intelligence, demand forecasting, visual search, and customer sentiment analysis at scale for modern commerce platforms.</p>
+        <div class="case-tags"><span class="tag">RECOMMEND</span><span class="tag">DYNAMIC PRICING</span><span class="tag">VISUAL SEARCH</span><span class="tag">FORECAST</span></div>
+      </div>
+    </div>
+    <div class="case-card reveal">
+      <div class="case-icon">⚖️</div>
+      <div>
+        <div class="case-title">Legal & Compliance</div>
+        <p class="case-desc">Contract intelligence and review automation, legal research assistants, compliance monitoring, regulatory change detection, and precedent analysis for law firms and legal departments.</p>
+        <div class="case-tags"><span class="tag">CONTRACT AI</span><span class="tag">LEGAL RESEARCH</span><span class="tag">COMPLIANCE</span><span class="tag">DUE DILIGENCE</span></div>
+      </div>
+    </div>
+    <div class="case-card reveal">
+      <div class="case-icon">🎓</div>
+      <div>
+        <div class="case-title">Education & EdTech</div>
+        <p class="case-desc">Adaptive learning systems, intelligent tutoring agents, automated assessment and grading, curriculum personalization, and educational content generation platforms that scale impact.</p>
+        <div class="case-tags"><span class="tag">ADAPTIVE</span><span class="tag">AI TUTORING</span><span class="tag">AUTO-GRADING</span><span class="tag">CONTENT GEN</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PILLARS -->
+<section id="pillars">
+  <div class="section-eyebrow">Organizational Pillars</div>
+  <h2 class="section-title">Built on Three <span class="blk">Founding Truths</span></h2>
+
+  <div class="pillars-grid">
+    <div class="pillar-card reveal" data-n="01">
+      <span class="pillar-icon">⚔️</span>
+      <div class="pillar-title">Precision Over Volume</div>
+      <p class="pillar-desc">We do not pursue scale for its own sake. Every model we build, every system we deploy is designed with surgical intentionality. We measure success not by the number of projects we take on, but by the depth of impact we achieve in each one.</p>
+    </div>
+    <div class="pillar-card reveal" data-n="02">
+      <span class="pillar-icon">🛡️</span>
+      <div class="pillar-title">The Code of Ethics</div>
+      <p class="pillar-desc">Every member of Assassin Creed AI Lab operates under a binding ethical code. We refuse projects that would cause harm. We audit our systems for bias. We document our limitations honestly. Transparency is not optional — it is constitutional.</p>
+    </div>
+    <div class="pillar-card reveal" data-n="03">
+      <span class="pillar-icon">🔭</span>
+      <div class="pillar-title">Frontier or Nothing</div>
+      <p class="pillar-desc">We position ourselves at the absolute edge of what is known in artificial intelligence research. Our team continuously publishes, challenges, and advances the state of the art. Moving backward is not in our creed.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ETHICS -->
+<div class="ethics-section" id="ethics">
+  <div class="ethics-inner">
+    <div class="reveal-left">
+      <div class="section-eyebrow">Our Commitments</div>
+      <h2 class="section-title">The <span class="blk">Ethical Creed</span></h2>
+      <p style="font-size:15px; color:var(--gray-500); line-height:1.85; margin-bottom:36px;">Artificial intelligence without ethics is a weapon without a wielder. At Assassin Creed AI Lab, our ethical commitments are not marketing language — they are operational requirements embedded in how we build, test, and deploy every system.</p>
+      <a href="#contact" class="btn-primary" style="display:inline-block;">Discuss Ethics Governance →</a>
+    </div>
+
+    <div class="ethics-commitments reveal-right">
+      <div class="ethics-item">
+        <div class="ethics-check">✦</div>
+        <div>
+          <div class="ethics-item-title">Transparency by Default</div>
+          <p class="ethics-item-desc">Every model we deliver comes with a full model card, data provenance documentation, and performance limitation disclosures. Our clients always know exactly what they are deploying.</p>
+        </div>
+      </div>
+      <div class="ethics-item">
+        <div class="ethics-check">✦</div>
+        <div>
+          <div class="ethics-item-title">Bias Auditing as Standard</div>
+          <p class="ethics-item-desc">All systems undergo mandatory fairness evaluation across protected demographic dimensions before deployment. We do not skip this step for any client or deadline.</p>
+        </div>
+      </div>
+      <div class="ethics-item">
+        <div class="ethics-check">✦</div>
+        <div>
+          <div class="ethics-item-title">Human Oversight Required</div>
+          <p class="ethics-item-desc">For high-stakes domains, we require human-in-the-loop architecture. We will not deploy fully autonomous AI decision systems in critical human domains.</p>
+        </div>
+      </div>
+      <div class="ethics-item">
+        <div class="ethics-check">✦</div>
+        <div>
+          <div class="ethics-item-title">Right to Explanation</div>
+          <p class="ethics-item-desc">We engineer explainability into models from the ground up. End users affected by AI decisions have the right to understand why — and we build systems that can tell them.</p>
+        </div>
+      </div>
+      <div class="ethics-item">
+        <div class="ethics-check">✦</div>
+        <div>
+          <div class="ethics-item-title">Privacy as Architecture</div>
+          <p class="ethics-item-desc">Differential privacy, federated learning, and data minimization are default design choices — not optional add-ons. We architect privacy before we architect capability.</p>
+        </div>
+      </div>
+      <div class="ethics-item">
+        <div class="ethics-check">✦</div>
+        <div>
+          <div class="ethics-item-title">No Harm, No Deploy</div>
+          <p class="ethics-item-desc">We maintain a firm refusal list. No surveillance tools aimed at civilians. No disinformation engines. No systems designed to manipulate or exploit vulnerable populations. Ever.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MANIFESTO -->
+<div class="manifesto reveal">
+  <p class="manifesto-text">"We do not build artificial intelligence to replace human wisdom. We build it to extend human reach — so that those who think boldly may act precisely, and those who act precisely may reshape the world."</p>
+  <div class="manifesto-attr">— The Founding Creed · Assassin Creed AI Laboratory</div>
+</div>
+
+<!-- CONTACT -->
+<div class="contact-section" id="contact">
+  <div class="contact-inner">
+    <div class="reveal-left">
+      <div class="section-eyebrow">Get In Touch</div>
+      <h2 class="section-title">Begin Your <span class="blk">Intelligence Mission</span></h2>
+      <p style="font-size:15px; color:var(--gray-500); line-height:1.85; margin-bottom:44px;">Whether you are looking to build a custom AI system, audit an existing one, or chart a strategic AI roadmap for your organization — we want to hear from you.</p>
+
+      <div class="contact-info-block">
+        <div class="contact-item">
+          <div class="contact-icon-box">✉</div>
+          <div>
+            <div class="contact-item-label">Primary Contact</div>
+            <div class="contact-item-value">assassincolab@gmail.com</div>
+            <div class="contact-item-sub">Official laboratory correspondence · Research inquiries · Partnerships</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon-box">🧠</div>
+          <div>
+            <div class="contact-item-label">Research Inquiries</div>
+            <div class="contact-item-value">assassincolab@gmail.com</div>
+            <div class="contact-item-sub">Collaboration proposals · Paper submissions · Academic partnerships</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon-box">🤝</div>
+          <div>
+            <div class="contact-item-label">Business & Partnerships</div>
+            <div class="contact-item-value">assassincolab@gmail.com</div>
+            <div class="contact-item-sub">Enterprise engagements · Commercial partnerships</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon-box">🎓</div>
+          <div>
+            <div class="contact-item-label">Careers & Talent</div>
+            <div class="contact-item-value">assassincolab@gmail.com</div>
+            <div class="contact-item-sub">Open positions · Internships · Research fellowships</div>
+          </div>
+        </div>
+
+        <div style="background:var(--gray-50); border:1px solid var(--gray-200); padding:22px; margin-top:8px;">
+          <div style="font-family:var(--font-mono); font-size:9px; letter-spacing:0.2em; color:var(--crimson); margin-bottom:8px; text-transform:uppercase;">Response Protocol</div>
+          <p style="font-size:12px; color:var(--gray-500); line-height:1.65;">We acknowledge all inquiries within <strong style="color:var(--black);">24 hours</strong> and provide a substantive response within <strong style="color:var(--black);">48–72 hours</strong>. For urgent matters, note "URGENT" in your subject line.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact-form-area reveal-right">
+      <div class="form-title">Send a Mission Brief</div>
+      <div class="form-subtitle">// Tell us about your intelligence needs</div>
+
+      <form id="contact-form" onsubmit="handleFormSubmit(event)">
+        <div class="form-row-2">
+          <div class="form-row" style="margin-bottom:0;">
+            <label for="fname">First Name</label>
+            <input type="text" id="fname" placeholder="Ezio" required>
+          </div>
+          <div class="form-row" style="margin-bottom:0;">
+            <label for="lname">Last Name</label>
+            <input type="text" id="lname" placeholder="Auditore" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="you@organization.com" required>
+        </div>
+        <div class="form-row">
+          <label for="org">Organization / Company</label>
+          <input type="text" id="org" placeholder="Your organization name">
+        </div>
+        <div class="form-row">
+          <label for="service">Service Interest</label>
+          <select id="service">
+            <option value="" disabled selected>Select a service...</option>
+            <option>Custom AI Model Development</option>
+            <option>Conversational AI Agents</option>
+            <option>Computer Vision Systems</option>
+            <option>Predictive Analytics & ML Engineering</option>
+            <option>AI Infrastructure & MLOps</option>
+            <option>AI Safety & Red Teaming</option>
+            <option>AI Research Consulting & Strategy</option>
+            <option>AI Education & Training Programs</option>
+            <option>Partnership / Collaboration</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="scale">Project Scale</label>
+          <select id="scale">
+            <option value="" disabled selected>Estimated scope...</option>
+            <option>Proof of Concept / Exploration</option>
+            <option>Small Project (1–3 months)</option>
+            <option>Medium Project (3–6 months)</option>
+            <option>Large Engagement (6–12 months)</option>
+            <option>Ongoing Partnership / Retainer</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="brief">Mission Brief</label>
+          <textarea id="brief" placeholder="Describe your AI challenge, objectives, current situation, and any relevant technical context..." required></textarea>
+        </div>
+        <div class="form-note">// All communications are confidential · We respond within 48–72 hours</div>
+        <button type="submit" class="form-submit" id="form-btn">▶&nbsp;&nbsp;TRANSMIT MISSION BRIEF</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="nav-logo" href="#home" style="display:flex; align-items:center; gap:12px; text-decoration:none; margin-bottom:16px;">
+        <div class="nav-emblem">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="fill:var(--white);">
+            <polygon points="50,5 90,30 90,70 50,95 10,70 10,30" fill="none" stroke="currentColor" stroke-width="4"/>
+            <polygon points="50,38 56,50 50,62 44,50" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="nav-brand" style="color:var(--white);">
+          ASSASSIN CREED AI LAB
+          <span style="color:rgba(255,255,255,0.3);">official research laboratory</span>
+        </div>
+      </a>
+      <p>A world-class artificial intelligence research and development laboratory, engineered for precision and guided by an unwavering ethical creed. Advancing intelligence that serves humanity.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Services</div>
+      <ul class="footer-links">
+        <li><a href="#services">Custom AI Development</a></li>
+        <li><a href="#services">Conversational Agents</a></li>
+        <li><a href="#services">Computer Vision</a></li>
+        <li><a href="#services">Predictive Analytics</a></li>
+        <li><a href="#services">AI Infrastructure</a></li>
+        <li><a href="#services">AI Safety Auditing</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Organization</div>
+      <ul class="footer-links">
+        <li><a href="#about">About the Lab</a></li>
+        <li><a href="#methodology">Our Methodology</a></li>
+        <li><a href="#technology">Technology Stack</a></li>
+        <li><a href="#ethics">Ethics & Governance</a></li>
+        <li><a href="#usecases">Industry Applications</a></li>
+        <li><a href="#pillars">Founding Pillars</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Connect</div>
+      <ul class="footer-links">
+        <li><a href="#contact">assassincolab@gmail.com</a></li>
+        <li><a href="#contact">Send a Message</a></li>
+        <li><a href="#contact">Research Collaboration</a></li>
+        <li><a href="#contact">Business Partnerships</a></li>
+        <li><a href="#contact">Career Opportunities</a></li>
+        <li><a href="#contact">Press & Media</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2025 Assassin Creed AI Laboratory · All rights reserved</div>
+    <div class="footer-creed">"Nothing is true. Everything is permitted."</div>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon">✦</div>
+  <div class="toast-text" id="toast-text">
+    <strong>Mission Brief Received</strong>
+    We will acknowledge your transmission within 24 hours.
+  </div>
+</div>
+
+<script>
+// LOADER
+(function(){
+  var bar=document.getElementById('loader-bar');
+  var loader=document.getElementById('loader');
+  var p=0;
+  var iv=setInterval(function(){
+    p+=Math.random()*18+4;
+    if(p>=100){p=100;bar.style.width='100%';clearInterval(iv);setTimeout(function(){loader.classList.add('hidden');},350);}
+    else{bar.style.width=p+'%';}
+  },100);
+})();
+
+// CURSOR
+var dot=document.getElementById('cursor-dot');
+var ring=document.getElementById('cursor-ring');
+var mX=0,mY=0,rX=0,rY=0;
+
+document.addEventListener('mousemove',function(e){
+  mX=e.clientX;mY=e.clientY;
+  dot.style.left=mX-3+'px';dot.style.top=mY-3+'px';
+});
+
+function aR(){
+  rX+=(mX-rX)*0.14;rY+=(mY-rY)*0.14;
+  ring.style.left=rX-17+'px';ring.style.top=rY-17+'px';
+  requestAnimationFrame(aR);
+}
+aR();
+
+document.querySelectorAll('a,button,.service-card,.tech-cell,.case-card,.pillar-card,.about-mini-card,.method-step-num,.ethics-item,input,select,textarea').forEach(function(el){
+  el.addEventListener('mouseenter',function(){ring.classList.add('hovering');});
+  el.addEventListener('mouseleave',function(){ring.classList.remove('hovering');});
+});
+
+// CANVAS
+var canvas=document.getElementById('hero-canvas');
+var ctx=canvas.getContext('2d');
+var particles=[];
+var pCount=70;
+var cDist=140;
+
+function rC(){canvas.width=canvas.parentElement.offsetWidth;canvas.height=canvas.parentElement.offsetHeight;}
+
+function cP(){
+  particles=[];
+  for(var i=0;i<pCount;i++){
+    particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*0.35,vy:(Math.random()-0.5)*0.35,sz:Math.random()*1.8+0.4,op:Math.random()*0.3+0.1});
+  }
+}
+
+function dP(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(var i=0;i<particles.length;i++){
+    for(var j=i+1;j<particles.length;j++){
+      var dx=particles[i].x-particles[j].x;var dy=particles[i].y-particles[j].y;
+      var d=Math.sqrt(dx*dx+dy*dy);
+      if(d<cDist){
+        var a=(1-d/cDist)*0.08;
+        ctx.strokeStyle='rgba(10,10,8,'+a+')';ctx.lineWidth=0.5;
+        ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();
+      }
+    }
+  }
+  for(var i=0;i<particles.length;i++){
+    var p=particles[i];
+    ctx.fillStyle='rgba(10,10,8,'+p.op+')';
+    ctx.beginPath();ctx.arc(p.x,p.y,p.sz,0,Math.PI*2);ctx.fill();
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0||p.x>canvas.width)p.vx*=-1;
+    if(p.y<0||p.y>canvas.height)p.vy*=-1;
+  }
+  if(mX&&mY){
+    var rect=canvas.getBoundingClientRect();
+    var mx=mX-rect.left;var my=mY-rect.top;
+    for(var i=0;i<particles.length;i++){
+      var p=particles[i];
+      var dx=mx-p.x;var dy=my-p.y;var d=Math.sqrt(dx*dx+dy*dy);
+      if(d<180&&d>0){
+        p.vx+=dx/d*0.015;p.vy+=dy/d*0.015;
+        var sp=Math.sqrt(p.vx*p.vx+p.vy*p.vy);
+        if(sp>1.2){p.vx=p.vx/sp*1.2;p.vy=p.vy/sp*1.2;}
+      }
+    }
+  }
+  requestAnimationFrame(dP);
+}
+
+rC();cP();dP();
+window.addEventListener('resize',function(){rC();cP();});
+
+// REVEALS
+var reveals=document.querySelectorAll('.reveal,.reveal-left,.reveal-right');
+var obs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
+},{threshold:0.06,rootMargin:'0px 0px -30px 0px'});
+reveals.forEach(function(el){obs.observe(el);});
+
+document.querySelectorAll('.services-grid,.tech-grid,.cases-grid,.pillars-grid,.method-steps,.about-mini-cards').forEach(function(g){
+  g.querySelectorAll('.reveal,.reveal-left,.reveal-right').forEach(function(el,i){el.style.transitionDelay=i*70+'ms';});
+});
+
+// COUNTERS
+var counters=document.querySelectorAll('.stat-number[data-count]');
+var cObs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      var el=e.target;var t=parseFloat(el.getAttribute('data-count'));
+      var sfx=el.getAttribute('data-suffix')||'';var dec=parseInt(el.getAttribute('data-decimal'))||0;
+      var st=0;var dur=2000;var sT=null;
+      function an(tme){if(!sT)sT=tme;var pr=Math.min((tme-sT)/dur,1);var ea=1-Math.pow(1-pr,3);
+        el.textContent=(st+(t-st)*ea).toFixed(dec)+sfx;if(pr<1)requestAnimationFrame(an);}
+      requestAnimationFrame(an);cObs.unobserve(el);
+    }
+  });
+},{threshold:0.5});
+counters.forEach(function(el){cObs.observe(el);});
+
+// NAV
+var mN=document.getElementById('main-nav');
+window.addEventListener('scroll',function(){
+  mN.classList.toggle('scrolled',window.scrollY>50);
+});
+
+// MOBILE
+function toggleMobile(){
+  document.getElementById('mobile-menu').classList.toggle('active');
+  document.getElementById('nav-toggle').classList.toggle('active');
+}
+function closeMobile(){
+  document.getElementById('mobile-menu').classList.remove('active');
+  document.getElementById('nav-toggle').classList.remove('active');
+}
+
+// FORM
+function handleFormSubmit(e){
+  e.preventDefault();
+  var fn=document.getElementById('fname').value.trim();
+  var ln=document.getElementById('lname').value.trim();
+  var em=document.getElementById('email').value.trim();
+  var br=document.getElementById('brief').value.trim();
+  if(!fn||!ln||!em||!br){showToast('Validation Error','Please fill in all required fields before transmitting.');return;}
+  var btn=document.getElementById('form-btn');
+  btn.textContent='◈  TRANSMITTING...';btn.style.pointerEvents='none';btn.style.opacity='0.6';
+  setTimeout(function(){
+    btn.textContent='✦  BRIEF TRANSMITTED';btn.style.background='#1A4A1A';btn.style.color='#90EE90';btn.style.opacity='1';
+    showToast('Mission Brief Received','Thank you, '+fn+'. We will acknowledge your transmission within 24 hours.');
+    setTimeout(function(){
+      document.getElementById('contact-form').reset();
+      btn.textContent='▶  TRANSMIT MISSION BRIEF';btn.style.background='';btn.style.color='';btn.style.pointerEvents='';
+    },4000);
+  },1500);
+}
+
+function showToast(t,m){
+  var ts=document.getElementById('toast');var tt=document.getElementById('toast-text');
+  tt.innerHTML='<strong>'+t+'</strong>'+m;ts.classList.add('show');
+  setTimeout(function(){ts.classList.remove('show');},5000);
+}
+
+// TILT
+document.querySelectorAll('.service-card,.pillar-card').forEach(function(c){
+  c.addEventListener('mousemove',function(e){
+    var r=c.getBoundingClientRect();var x=e.clientX-r.left;var y=e.clientY-r.top;
+    var cx=r.width/2;var cy=r.height/2;
+    var rx=(y-cy)/cy*-2.5;var ry=(x-cx)/cx*2.5;
+    c.style.transform='translateY(-5px) perspective(800px) rotateX('+rx+'deg) rotateY('+ry+'deg)';
+  });
+  c.addEventListener('mouseleave',function(){c.style.transform='';});
+});
+
+// PARALLAX
+window.addEventListener('scroll',function(){
+  var s=window.scrollY;
+  var hg=document.querySelector('.hero-grid');if(hg)hg.style.transform='translateY('+s*0.12+'px)';
+  var hb=document.querySelector('.hero-bg');if(hb)hb.style.transform='translateY('+s*0.06+'px)';
+});
+</script>
+</body>
+</html>
